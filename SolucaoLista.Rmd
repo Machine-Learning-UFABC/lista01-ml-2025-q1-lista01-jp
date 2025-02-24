@@ -1,10 +1,8 @@
 ---
 title: "Solução Lista 01"
 author: |
-        | Nome: Fulano de Tal
-        | E-mail: fdt@aluno.ufabc.edu.br
-        | Nome: Fulano de Tal
-        | E-mail: fdt@aluno.ufabc.edu.br
+        | Nome: Joao Paula
+        | E-mail: paula.joao@aluno.ufabc.edu.br
         | (Não é preciso informar os RAs)
 date: "`r format(Sys.time(), '%d %B, %Y')`"
 output: pdf_document
@@ -23,11 +21,69 @@ options(width =70)
 
 ## Exercício 01
 
+### a) Problema de Classificação
+O problema de classificação consiste em atribuir rótulos a exemplos com base em suas características. Um exemplo clássico é a detecção de spam em e-mails. O vetor de características pode incluir o número de palavras em maiúsculas, presença de links e frequência de certas palavras. Os rótulos seriam "spam" ou "não spam".
+
+### b) Problema de Regressão
+A regressão prevê valores numéricos com base em variáveis independentes. Um exemplo é a previsão do preço de imóveis. O vetor de características pode conter a metragem, número de quartos e localização, e a resposta seria o preço estimado.
+
+### c) Problema de Agrupamento
+O agrupamento identifica padrões em dados não rotulados. Um exemplo é a segmentação de clientes em um e-commerce. O vetor de características pode incluir idade, valor gasto e frequência de compras. O modelo agrupa clientes com perfis semelhantes.
 
 ## Exercício 02
 
+A "maldição da dimensionalidade" refere-se ao problema de aumento exponencial da complexidade dos dados conforme cresce o número de dimensões. Isso afeta algoritmos de aprendizado de máquina, pois os dados tornam-se esparsos, dificultando a generalização e exigindo mais amostras para um bom desempenho.
 
 ## Exercício 03
 
+```{r knn-classification}
+knn_classification <- function(k, x, D) {
+  library(dplyr)
+  D2 <- D %>%
+    mutate(dist = (x[1] - x_1)^2 + (x[2] - x_2)^2) %>%
+    arrange(dist) %>%
+    head(k) %>%
+    count(y)
+  return(D2$y[which.max(D2$n)])
+}
+
+# Exemplo de uso:
+library(tibble)
+set.seed(123)
+D <- tibble(
+  x_1 = rnorm(100, 1, 1),
+  x_2 = rnorm(100, -1, 2),
+  y = factor(sample(c("one", "two", "three"), 100, replace = TRUE))
+)
+
+x_test <- c(1, 2)
+k_value <- 10
+knn_classification(k_value, x_test, D)
+```
 
 ## Exercício 04
+
+```{r knn-iris}
+library(tidyverse)
+data("iris")
+iris <- as_tibble(iris) %>%
+  select(Petal.Length, Sepal.Length, Species) %>%
+  rename(x_1 = Petal.Length, x_2 = Sepal.Length, y = Species)
+
+# Avaliação do kNN com k=10 e k=1
+classifications <- function(k, data) {
+  l_iris <- as.list(data)
+  v_bool <- pmap_lgl(l_iris, function(x_1, x_2, y) {
+    return(knn_classification(k, c(x_1, x_2), data) == y)
+  })
+  return(sum(v_bool))
+}
+
+correct_k10 <- classifications(10, iris)
+correct_k1 <- classifications(1, iris)
+
+correct_k10
+correct_k1
+```
+
+Os resultados indicam quantos pontos foram corretamente classificados para cada valor de k.
